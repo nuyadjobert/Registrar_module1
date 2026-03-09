@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CurriculumController;
@@ -7,60 +8,95 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\StudentController;
 
-// =====================
-// Auth
-// =====================
-Route::post('/login',  [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-// =====================
-// Courses
-// =====================
-Route::post('/courses',        [CourseController::class, 'store']);
-Route::get('/courses',         [CourseController::class, 'index']);
-Route::get('/courses/{id}',    [CourseController::class, 'show']);
-Route::put('/courses/{id}',    [CourseController::class, 'update']);
-Route::delete('/courses/{id}', [CourseController::class, 'destroy']);
 
-// =====================
-// Curriculum
-// =====================
-Route::post('/curriculum',        [CurriculumController::class, 'store']);
-Route::get('/curriculum',         [CurriculumController::class, 'index']);
-Route::get('/curriculum/{id}',    [CurriculumController::class, 'show']);
-Route::put('/curriculum/{id}',    [CurriculumController::class, 'update']);
-Route::delete('/curriculum/{id}', [CurriculumController::class, 'destroy']);
+// auth routes
+//api/auth
+Route::prefix('auth')->name('auth.')->group(function () {
 
-// =====================
-// Sections
-// =====================
-Route::post('/sections',        [SectionController::class, 'store']);
-Route::get('/sections',         [SectionController::class, 'index']);
-Route::get('/sections/{id}',    [SectionController::class, 'show']);
-Route::put('/sections/{id}',    [SectionController::class, 'update']);
-Route::delete('/sections/{id}', [SectionController::class, 'destroy']);
+    Route::post('/register', [AuthController::class, 'register'])->name('register');
+    Route::post('/login',    [AuthController::class, 'login'])->name('login');
 
-// =====================
-// Protected Routes (Login Required)
-// =====================
+    Route::middleware('auth:sanctum')->group(function () {
+
+        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        Route::get('/user',    [AuthController::class, 'user'])->name('user');
+
+    });
+
+});
+
+
+//protected routes
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Enrollments
-    Route::get('/enrollments',               [EnrollmentController::class, 'index']);
-    Route::get('/enrollments/{id}',          [EnrollmentController::class, 'show']);
-    Route::post('/enrollments/{id}/approve', [EnrollmentController::class, 'approve']);
-    Route::post('/enrollments/{id}/reject',  [EnrollmentController::class, 'reject']);
+ //courses routes
+ //api/courses
+    Route::prefix('courses')->name('courses.')->group(function () {
 
-    // Students
-    Route::get('/students',                  [StudentController::class, 'index']);
-    Route::get('/students/{id}',             [StudentController::class, 'show']);
-    Route::get('/students/{id}/cor',         [StudentController::class, 'cor']);
-    Route::get('/students/{id}/transcript',  [StudentController::class, 'transcript']);
+        Route::get('/',      [CourseController::class, 'index'])->name('index');
+        Route::post('/',     [CourseController::class, 'store'])->name('store');
+        Route::get('/{id}',  [CourseController::class, 'show'])->name('show');
+        Route::put('/{id}',  [CourseController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CourseController::class, 'destroy'])->name('destroy');
+
+    });
+
+//curriculum routes
+//api/curriculum
+    Route::prefix('curriculum')->name('curriculum.')->group(function () {
+
+        Route::get('/',      [CurriculumController::class, 'index'])->name('index');
+        Route::post('/',     [CurriculumController::class, 'store'])->name('store');
+        Route::get('/{id}',  [CurriculumController::class, 'show'])->name('show');
+        Route::put('/{id}',  [CurriculumController::class, 'update'])->name('update');
+        Route::delete('/{id}', [CurriculumController::class, 'destroy'])->name('destroy');
+
+    });
+
+//sections routes
+//api/sections
+    Route::prefix('sections')->name('sections.')->group(function () {
+
+        Route::get('/',      [SectionController::class, 'index'])->name('index');
+        Route::post('/',     [SectionController::class, 'store'])->name('store');
+        Route::get('/{id}',  [SectionController::class, 'show'])->name('show');
+        Route::put('/{id}',  [SectionController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SectionController::class, 'destroy'])->name('destroy');
+
+    });
+
+
+//enrollments routes
+//api/enrollments
+    Route::prefix('enrollments')->name('enrollments.')->group(function () {
+
+        Route::get('/', [EnrollmentController::class, 'index'])->name('index');
+        Route::get('/{id}', [EnrollmentController::class, 'show'])->name('show');
+
+        Route::post('/{id}/approve', [EnrollmentController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject',  [EnrollmentController::class, 'reject'])->name('reject');
+
+    });
+
+
+    //students routes
+    //api/students
+    Route::prefix('students')->name('students.')->group(function () {
+
+        Route::get('/', [StudentController::class, 'index'])->name('index');
+        Route::get('/{id}', [StudentController::class, 'show'])->name('show');
+
+        Route::get('/{id}/cor',        [StudentController::class, 'cor'])->name('cor');
+        Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
+
+    });
+
 });
 
-// =====================
-// Test
-// =====================
+
+//test routes
 Route::get('/test', function () {
     return response()->json(['status' => 'ok']);
-});
+})->name('test');
+

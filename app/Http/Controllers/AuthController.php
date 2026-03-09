@@ -9,6 +9,32 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+
+    // POST /api/register
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6|confirmed'
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password)
+        ]);
+
+        $token = $user->createToken('registrar-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'User registered successfully',
+            'token' => $token,
+            'user' => $user
+        ], 201);
+    }
+
+
     // POST /api/login
     public function login(Request $request)
     {
@@ -32,6 +58,16 @@ class AuthController extends Controller
             'user'    => $user
         ]);
     }
+
+
+    // GET /api/user
+    public function user(Request $request)
+    {
+        return response()->json([
+            'user' => $request->user()
+        ]);
+    }
+
 
     // POST /api/logout
     public function logout(Request $request)
