@@ -26,7 +26,6 @@ class EnrollmentController extends Controller
             'section_id' => 'required|exists:sections,id',
         ]);
 
-        // Check if already enrolled
         $existing = Enrollment::where('student_id', $validated['student_id'])
                               ->where('section_id', $validated['section_id'])
                               ->first();
