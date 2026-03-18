@@ -7,7 +7,7 @@ use App\Http\Controllers\CurriculumController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\StudentController;
-
+use App\Http\Controllers\SubjectController;
 
 
 // auth routes
@@ -89,6 +89,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/{id}/cor',        [StudentController::class, 'cor'])->name('cor');
         Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
+
+    });
+
+    //subjects routes
+//api/subjects
+    Route::prefix('subjects')->name('subjects.')->group(function () {
+
+        Route::get('/',        [SubjectController::class, 'index'])->name('index');
+        Route::post('/',       [SubjectController::class, 'store'])->name('store');
+        Route::get('/{id}',    [SubjectController::class, 'show'])->name('show');
+        Route::put('/{id}',    [SubjectController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('destroy');
 
     });
 
