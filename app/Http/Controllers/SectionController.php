@@ -25,6 +25,9 @@ class SectionController extends Controller
             'section_name' => 'required|string|unique:sections',
             'subject_id'   => 'required|exists:subjects,id',
             'capacity'     => 'required|integer|min:1',
+            'school_year'  => 'required|string',
+            'semester'     => 'required|in:1st Semester,2nd Semester,Summer',
+            'status'       => 'required|in:Open,Closed,Full',
         ]);
 
         $section = Section::create($validated);
@@ -55,6 +58,9 @@ class SectionController extends Controller
             'section_name' => 'sometimes|string|unique:sections,section_name,' . $id,
             'subject_id'   => 'sometimes|exists:subjects,id',
             'capacity'     => 'sometimes|integer|min:1',
+            'school_year'  => 'sometimes|string',
+            'semester'     => 'sometimes|in:1st Semester,2nd Semester,Summer',
+            'status'       => 'sometimes|in:Open,Closed,Full',
         ]);
 
         $section->update($validated);

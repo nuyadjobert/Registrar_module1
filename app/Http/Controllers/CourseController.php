@@ -22,10 +22,13 @@ class CourseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'course_code' => 'required|unique:courses',
+            'course_code' => 'required|string|unique:courses,course_code',
             'course_name' => 'required|string',
-            'units'       => 'required|integer',
+            'units'       => 'required|integer|min:1',
             'department'  => 'required|string',
+            'status'      => 'required|in:Active,Inactive',
+            'type'        => 'required|in:Major,Minor,Elective,General Education',
+            'description' => 'nullable|string',
         ]);
 
         $course = Course::create($validated);
@@ -53,10 +56,13 @@ class CourseController extends Controller
         $course = Course::findOrFail($id);
 
         $validated = $request->validate([
-            'course_code' => 'sometimes|unique:courses,course_code,' . $id,
+            'course_code' => 'sometimes|string|unique:courses,course_code,' . $id,
             'course_name' => 'sometimes|string',
-            'units'       => 'sometimes|integer',
+            'units'       => 'sometimes|integer|min:1',
             'department'  => 'sometimes|string',
+            'status'      => 'sometimes|in:Active,Inactive',
+            'type'        => 'sometimes|in:Major,Minor,Elective,General Education',
+            'description' => 'nullable|string',
         ]);
 
         $course->update($validated);

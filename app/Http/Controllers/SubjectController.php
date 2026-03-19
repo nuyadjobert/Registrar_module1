@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
-    // GET /api/subjects
     public function index()
     {
         $subjects = Subject::all();
@@ -18,13 +17,14 @@ class SubjectController extends Controller
         ]);
     }
 
-    // POST /api/subjects
     public function store(Request $request)
     {
         $validated = $request->validate([
             'subject_code' => 'required|string|unique:subjects,subject_code',
             'subject_name' => 'required|string',
             'units'        => 'required|integer|min:1',
+            'type'         => 'required|in:Lecture,Laboratory,Lecture & Lab',
+            'status'       => 'required|in:Active,Inactive',
         ]);
 
         $subject = Subject::create($validated);
@@ -35,16 +35,9 @@ class SubjectController extends Controller
         ], 201);
     }
 
-    // GET /api/subjects/{id}
     public function show($id)
     {
-        $subject = Subject::find($id);
-
-        if (!$subject) {
-            return response()->json([
-                'message' => 'Subject not found'
-            ], 404);
-        }
+        $subject = Subject::findOrFail($id);
 
         return response()->json([
             'message' => 'Subject retrieved successfully',
@@ -52,21 +45,16 @@ class SubjectController extends Controller
         ]);
     }
 
-    // PUT /api/subjects/{id}
     public function update(Request $request, $id)
     {
-        $subject = Subject::find($id);
-
-        if (!$subject) {
-            return response()->json([
-                'message' => 'Subject not found'
-            ], 404);
-        }
+        $subject = Subject::findOrFail($id);
 
         $validated = $request->validate([
             'subject_code' => 'sometimes|string|unique:subjects,subject_code,' . $id,
             'subject_name' => 'sometimes|string',
             'units'        => 'sometimes|integer|min:1',
+            'type'         => 'sometimes|in:Lecture,Laboratory,Lecture & Lab',
+            'status'       => 'sometimes|in:Active,Inactive',
         ]);
 
         $subject->update($validated);
@@ -77,17 +65,9 @@ class SubjectController extends Controller
         ]);
     }
 
-    // DELETE /api/subjects/{id}
     public function destroy($id)
     {
-        $subject = Subject::find($id);
-
-        if (!$subject) {
-            return response()->json([
-                'message' => 'Subject not found'
-            ], 404);
-        }
-
+        $subject = Subject::findOrFail($id);
         $subject->delete();
 
         return response()->json([

@@ -9,7 +9,10 @@ class Section extends Model
     protected $fillable = [
         'section_name',
         'subject_id',
-        'capacity'
+        'capacity',
+        'school_year',
+        'semester',
+        'status',
     ];
 
     public function subject()

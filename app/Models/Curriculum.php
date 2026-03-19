@@ -12,7 +12,9 @@ class Curriculum extends Model
         'course_id',
         'subject_id',
         'year_level',
-        'semester'
+        'semester',
+        'school_year',
+        'status',
     ];
 
     public function course()
