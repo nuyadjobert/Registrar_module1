@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Enrollment;
+use App\Models\DocumentRequest;
 use Illuminate\Http\Request;
 
 class StudentController extends Controller
@@ -33,17 +34,31 @@ class StudentController extends Controller
     // GET /api/students/{id}/cor
     public function cor($id)
     {
-        $student = Student::with(['enrollments' => function($query) {
+        $student = Student::findOrFail($id);
+
+        // Check if there's a released COR request
+        $docRequest = DocumentRequest::where('student_id', $id)
+                                     ->where('type', 'cor')
+                                     ->where('status', 'released')
+                                     ->first();
+
+        if (!$docRequest) {
+            return response()->json([
+                'message' => 'COR is not yet available. Please ensure payment has been made and the document has been released.'
+            ], 403);
+        }
+
+        $student->load(['enrollments' => function($query) {
             $query->where('status', 'approved')
                   ->with(['section.subject']);
-        }])->findOrFail($id);
+        }]);
 
         $enrollments = $student->enrollments->map(function($enrollment) {
             return [
-                'section'  => $enrollment->section->section_name ?? null,
-                'subject'  => $enrollment->section->subject->subject_name ?? null,
-                'units'    => $enrollment->section->subject->units ?? null,
-                'status'   => $enrollment->status,
+                'section' => $enrollment->section->section_name ?? null,
+                'subject' => $enrollment->section->subject->subject_name ?? null,
+                'units'   => $enrollment->section->subject->units ?? null,
+                'status'  => $enrollment->status,
             ];
         });
 
@@ -62,10 +77,24 @@ class StudentController extends Controller
     // GET /api/students/{id}/transcript
     public function transcript($id)
     {
-        $student = Student::with(['enrollments' => function($query) {
+        $student = Student::findOrFail($id);
+
+        // Check if there's a released TOR request
+        $docRequest = DocumentRequest::where('student_id', $id)
+                                     ->where('type', 'tor')
+                                     ->where('status', 'released')
+                                     ->first();
+
+        if (!$docRequest) {
+            return response()->json([
+                'message' => 'TOR is not yet available. Please ensure payment has been made and the document has been released.'
+            ], 403);
+        }
+
+        $student->load(['enrollments' => function($query) {
             $query->where('status', 'approved')
                   ->with(['section.subject']);
-        }])->findOrFail($id);
+        }]);
 
         $records = $student->enrollments->map(function($enrollment) {
             return [

@@ -4,22 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Enrollment extends Model
+class DocumentRequest extends Model
 {
     protected $fillable = [
         'student_id',
-        'section_id',
+        'type',
+        'payment_status',
         'status',
-        'payment_status'
     ];
 
     public function student()
     {
         return $this->belongsTo(Student::class);
-    }
-
-    public function section()
-    {
-        return $this->belongsTo(Section::class);
     }
 }

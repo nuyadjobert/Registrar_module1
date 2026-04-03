@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enrollment;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 
 class EnrollmentController extends Controller
 {
+    public function __construct(protected PaymentService $paymentService) {}
+
     // GET /api/enrollments
     public function index()
     {
@@ -16,36 +19,6 @@ class EnrollmentController extends Controller
             'message' => 'Enrollments retrieved successfully',
             'data'    => $enrollments
         ]);
-    }
-
-    // POST /api/enrollments
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'section_id' => 'required|exists:sections,id',
-        ]);
-
-        $existing = Enrollment::where('student_id', $validated['student_id'])
-                              ->where('section_id', $validated['section_id'])
-                              ->first();
-
-        if ($existing) {
-            return response()->json([
-                'message' => 'Student is already enrolled in this section'
-            ], 422);
-        }
-
-        $enrollment = Enrollment::create([
-            'student_id' => $validated['student_id'],
-            'section_id' => $validated['section_id'],
-            'status'     => 'pending'
-        ]);
-
-        return response()->json([
-            'message' => 'Enrollment created successfully',
-            'data'    => $enrollment->load(['student', 'section'])
-        ], 201);
     }
 
     // GET /api/enrollments/{id}
@@ -59,36 +32,6 @@ class EnrollmentController extends Controller
         ]);
     }
 
-    // PUT /api/enrollments/{id}
-    public function update(Request $request, $id)
-    {
-        $enrollment = Enrollment::findOrFail($id);
-
-        $validated = $request->validate([
-            'student_id' => 'sometimes|exists:students,id',
-            'section_id' => 'sometimes|exists:sections,id',
-            'status'     => 'sometimes|in:pending,approved,rejected',
-        ]);
-
-        $enrollment->update($validated);
-
-        return response()->json([
-            'message' => 'Enrollment updated successfully',
-            'data'    => $enrollment->load(['student', 'section'])
-        ]);
-    }
-
-    // DELETE /api/enrollments/{id}
-    public function destroy($id)
-    {
-        $enrollment = Enrollment::findOrFail($id);
-        $enrollment->delete();
-
-        return response()->json([
-            'message' => 'Enrollment deleted successfully'
-        ]);
-    }
-
     // POST /api/enrollments/{id}/approve
     public function approve($id)
     {
@@ -97,6 +40,13 @@ class EnrollmentController extends Controller
         if ($enrollment->status === 'approved') {
             return response()->json([
                 'message' => 'Enrollment is already approved'
+            ], 422);
+        }
+
+        // Payment check — powered by PaymentService stub for now
+        if (!$this->paymentService->hasPaid($enrollment)) {
+            return response()->json([
+                'message' => 'Cannot approve enrollment. Student has not yet paid.'
             ], 422);
         }
 
@@ -123,6 +73,25 @@ class EnrollmentController extends Controller
 
         return response()->json([
             'message' => 'Enrollment rejected successfully',
+            'data'    => $enrollment->load(['student', 'section'])
+        ]);
+    }
+
+    // POST /api/enrollments/{id}/mark-paid  ← cashier team calls this
+    public function markAsPaid($id)
+    {
+        $enrollment = Enrollment::findOrFail($id);
+
+        if ($enrollment->payment_status === 'paid') {
+            return response()->json([
+                'message' => 'Enrollment is already marked as paid'
+            ], 422);
+        }
+
+        $enrollment->update(['payment_status' => 'paid']);
+
+        return response()->json([
+            'message' => 'Payment status updated successfully',
             'data'    => $enrollment->load(['student', 'section'])
         ]);
     }

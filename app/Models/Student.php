@@ -16,4 +16,10 @@ class Student extends Model
     {
         return $this->hasMany(Enrollment::class);
     }
+
+    // app/Models/Student.php
+public function documentRequests()
+{
+    return $this->hasMany(DocumentRequest::class);
+}
 }

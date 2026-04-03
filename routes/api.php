@@ -8,6 +8,7 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\DocumentRequestController;
 
 
 // auth routes
@@ -76,6 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('/{id}/approve', [EnrollmentController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject',  [EnrollmentController::class, 'reject'])->name('reject');
+        Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid'])->name('mark-paid'); // <-- new
 
     });
 
@@ -103,6 +105,19 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('destroy');
 
     });
+
+
+// document requests routes
+// api/document-requests
+Route::prefix('document-requests')->name('document-requests.')->group(function () {
+
+    Route::get('/',    [DocumentRequestController::class, 'index'])->name('index');
+    Route::post('/',   [DocumentRequestController::class, 'store'])->name('store');
+
+    Route::post('/{id}/release',   [DocumentRequestController::class, 'release'])->name('release');
+    Route::post('/{id}/unrelease', [DocumentRequestController::class, 'unrelease'])->name('unrelease');
+
+});
 
 });
 
