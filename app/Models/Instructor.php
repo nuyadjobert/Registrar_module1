@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Subject extends Model
+class Instructor extends Model
 {
     /*
     |--------------------------------------------------------------------------
@@ -20,10 +20,9 @@ class Subject extends Model
     |--------------------------------------------------------------------------
     */
     protected $fillable = [
-        'subject_code',
-        'subject_name',
-        'units',
-        'type',   // lecture, lab, etc.
+        'name',
+        'email',
+        'department',
         'status',
     ];
 
@@ -33,17 +32,20 @@ class Subject extends Model
     |--------------------------------------------------------------------------
     */
 
-    // Subject has many Sections
+    // Instructor has many Sections
     public function sections()
     {
         return $this->hasMany(Section::class);
     }
 
-    // Subject belongs to many Programs through Curriculum
-    public function programs()
+    /*
+    |--------------------------------------------------------------------------
+    | Accessors
+    |--------------------------------------------------------------------------
+    */
+
+    public function getDisplayNameAttribute()
     {
-        return $this->belongsToMany(Program::class, 'curricula')
-            ->withPivot('year_level', 'semester', 'school_year', 'status')
-            ->withTimestamps();
+        return "{$this->name} ({$this->department})";
     }
 }

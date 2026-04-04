@@ -1,70 +1,58 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Curriculum;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Curriculum;
+use Illuminate\Validation\Rule;
 
 class CurriculumController extends Controller
 {
     public function index()
     {
-        $curricula = Curriculum::with(['course', 'subject'])->get();
-
-        return response()->json([
-            'message' => 'Curricula retrieved successfully',
-            'data'    => $curricula
-        ]);
+        $curricula = Curriculum::with('program', 'subject')->get();
+        return response()->json($curricula);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'course_id'   => 'required|exists:courses,id',
-            'subject_id'  => 'required|exists:subjects,id',
-            'year_level'  => 'required|integer|between:1,4',
-            'semester'    => 'required|integer|between:1,2',
+        $request->validate([
+            'program_id' => 'required|exists:programs,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'year_level' => 'required|integer|min:1|max:5',
+            'semester' => 'required|string',
             'school_year' => 'required|string',
-            'status'      => 'required|in:Active,Inactive',
+            'status' => ['nullable', Rule::in(['active','inactive'])],
         ]);
 
-        $curriculum = Curriculum::create($validated);
+        $curriculum = Curriculum::create($request->all());
 
-        return response()->json([
-            'message' => 'Curriculum created successfully',
-            'data'    => $curriculum->load(['course', 'subject'])
-        ], 201);
+        return response()->json($curriculum, 201);
     }
 
     public function show($id)
     {
-        $curriculum = Curriculum::with(['course', 'subject'])->findOrFail($id);
-
-        return response()->json([
-            'message' => 'Curriculum retrieved successfully',
-            'data'    => $curriculum
-        ]);
+        $curriculum = Curriculum::with('program','subject')->findOrFail($id);
+        return response()->json($curriculum);
     }
 
     public function update(Request $request, $id)
     {
         $curriculum = Curriculum::findOrFail($id);
 
-        $validated = $request->validate([
-            'course_id'   => 'sometimes|exists:courses,id',
-            'subject_id'  => 'sometimes|exists:subjects,id',
-            'year_level'  => 'sometimes|integer|between:1,4',
-            'semester'    => 'sometimes|integer|between:1,2',
-            'school_year' => 'sometimes|string',
-            'status'      => 'sometimes|in:Active,Inactive',
+        $request->validate([
+            'program_id' => 'required|exists:programs,id',
+            'subject_id' => 'required|exists:subjects,id',
+            'year_level' => 'required|integer|min:1|max:5',
+            'semester' => 'required|string',
+            'school_year' => 'required|string',
+            'status' => ['nullable', Rule::in(['active','inactive'])],
         ]);
 
-        $curriculum->update($validated);
+        $curriculum->update($request->all());
 
-        return response()->json([
-            'message' => 'Curriculum updated successfully',
-            'data'    => $curriculum->load(['course', 'subject'])
-        ]);
+        return response()->json($curriculum);
     }
 
     public function destroy($id)
@@ -72,8 +60,6 @@ class CurriculumController extends Controller
         $curriculum = Curriculum::findOrFail($id);
         $curriculum->delete();
 
-        return response()->json([
-            'message' => 'Curriculum deleted successfully'
-        ]);
+        return response()->json(['message' => 'Curriculum entry deleted successfully']);
     }
 }

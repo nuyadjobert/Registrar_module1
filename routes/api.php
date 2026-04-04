@@ -2,128 +2,108 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\CurriculumController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\StudentController;
-use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\DocumentRequestController;
+use App\Http\Controllers\GradeController;
 
-
-// auth routes
-//api/auth
+// ==============================
+// AUTH ROUTES
+// ==============================
 Route::prefix('auth')->name('auth.')->group(function () {
 
     Route::post('/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/login',    [AuthController::class, 'login'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
 
     Route::middleware('auth:sanctum')->group(function () {
-
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-        Route::get('/user',    [AuthController::class, 'user'])->name('user');
-
+        Route::get('/user', [AuthController::class, 'user'])->name('user');
     });
 
 });
 
-
-//protected routes
+// ==============================
+// PROTECTED ROUTES (Registrar)
+// ==============================
 Route::middleware('auth:sanctum')->group(function () {
 
- //courses routes
- //api/courses
-    Route::prefix('courses')->name('courses.')->group(function () {
-
-        Route::get('/',      [CourseController::class, 'index'])->name('index');
-        Route::post('/',     [CourseController::class, 'store'])->name('store');
-        Route::get('/{id}',  [CourseController::class, 'show'])->name('show');
-        Route::put('/{id}',  [CourseController::class, 'update'])->name('update');
-        Route::delete('/{id}', [CourseController::class, 'destroy'])->name('destroy');
-
+    // -------- PROGRAMS --------
+    Route::prefix('programs')->name('programs.')->group(function () {
+        Route::get('/', [ProgramController::class, 'index'])->name('index');
+        Route::post('/', [ProgramController::class, 'store'])->name('store');
+        Route::get('/{id}', [ProgramController::class, 'show'])->name('show');
+        Route::put('/{id}', [ProgramController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ProgramController::class, 'destroy'])->name('destroy');
     });
 
-//curriculum routes
-//api/curriculum
-    Route::prefix('curriculum')->name('curriculum.')->group(function () {
+    // -------- SUBJECTS --------
+    Route::prefix('subjects')->name('subjects.')->group(function () {
+        Route::get('/', [SubjectController::class, 'index'])->name('index');
+        Route::post('/', [SubjectController::class, 'store'])->name('store');
+        Route::get('/{id}', [SubjectController::class, 'show'])->name('show');
+        Route::put('/{id}', [SubjectController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('destroy');
+    });
 
-        Route::get('/',      [CurriculumController::class, 'index'])->name('index');
-        Route::post('/',     [CurriculumController::class, 'store'])->name('store');
-        Route::get('/{id}',  [CurriculumController::class, 'show'])->name('show');
-        Route::put('/{id}',  [CurriculumController::class, 'update'])->name('update');
+    // -------- CURRICULA --------
+    Route::prefix('curricula')->name('curricula.')->group(function () {
+        Route::get('/', [CurriculumController::class, 'index'])->name('index');
+        Route::post('/', [CurriculumController::class, 'store'])->name('store');
+        Route::get('/{id}', [CurriculumController::class, 'show'])->name('show');
+        Route::put('/{id}', [CurriculumController::class, 'update'])->name('update');
         Route::delete('/{id}', [CurriculumController::class, 'destroy'])->name('destroy');
-
     });
 
-//sections routes
-//api/sections
+    // -------- SECTIONS --------
     Route::prefix('sections')->name('sections.')->group(function () {
-
-        Route::get('/',      [SectionController::class, 'index'])->name('index');
-        Route::post('/',     [SectionController::class, 'store'])->name('store');
-        Route::get('/{id}',  [SectionController::class, 'show'])->name('show');
-        Route::put('/{id}',  [SectionController::class, 'update'])->name('update');
+        Route::get('/', [SectionController::class, 'index'])->name('index');
+        Route::post('/', [SectionController::class, 'store'])->name('store');
+        Route::get('/{id}', [SectionController::class, 'show'])->name('show');
+        Route::put('/{id}', [SectionController::class, 'update'])->name('update');
         Route::delete('/{id}', [SectionController::class, 'destroy'])->name('destroy');
-
     });
 
-
-//enrollments routes
-//api/enrollments
+    // -------- ENROLLMENTS --------
     Route::prefix('enrollments')->name('enrollments.')->group(function () {
-
         Route::get('/', [EnrollmentController::class, 'index'])->name('index');
         Route::get('/{id}', [EnrollmentController::class, 'show'])->name('show');
-
         Route::post('/{id}/approve', [EnrollmentController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject',  [EnrollmentController::class, 'reject'])->name('reject');
-        Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid'])->name('mark-paid'); // <-- new
-
+        Route::post('/{id}/reject', [EnrollmentController::class, 'reject'])->name('reject');
+        Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid'])->name('mark-paid');
     });
 
-
-    //students routes
-    //api/students
+    // -------- STUDENTS --------
     Route::prefix('students')->name('students.')->group(function () {
-
         Route::get('/', [StudentController::class, 'index'])->name('index');
         Route::get('/{id}', [StudentController::class, 'show'])->name('show');
-
-        Route::get('/{id}/cor',        [StudentController::class, 'cor'])->name('cor');
-        Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
-
+        Route::get('/{id}/cor', [StudentController::class, 'cor'])->name('cor');
+        Route::get('/{id}/tor', [StudentController::class, 'tor'])->name('tor');
     });
 
-    //subjects routes
-//api/subjects
-    Route::prefix('subjects')->name('subjects.')->group(function () {
-
-        Route::get('/',        [SubjectController::class, 'index'])->name('index');
-        Route::post('/',       [SubjectController::class, 'store'])->name('store');
-        Route::get('/{id}',    [SubjectController::class, 'show'])->name('show');
-        Route::put('/{id}',    [SubjectController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('destroy');
-
+    // -------- GRADES --------
+    Route::prefix('grades')->name('grades.')->group(function () {
+        Route::get('/', [GradeController::class, 'index'])->name('index');
+        Route::post('/', [GradeController::class, 'store'])->name('store');
+        Route::get('/{id}', [GradeController::class, 'show'])->name('show');
+        Route::put('/{id}', [GradeController::class, 'update'])->name('update');
     });
 
-
-// document requests routes
-// api/document-requests
-Route::prefix('document-requests')->name('document-requests.')->group(function () {
-
-    Route::get('/',    [DocumentRequestController::class, 'index'])->name('index');
-    Route::post('/',   [DocumentRequestController::class, 'store'])->name('store');
-
-    Route::post('/{id}/release',   [DocumentRequestController::class, 'release'])->name('release');
-    Route::post('/{id}/unrelease', [DocumentRequestController::class, 'unrelease'])->name('unrelease');
+    // -------- DOCUMENT REQUESTS --------
+    Route::prefix('document-requests')->name('document-requests.')->group(function () {
+        Route::get('/', [DocumentRequestController::class, 'index'])->name('index');
+        Route::post('/', [DocumentRequestController::class, 'store'])->name('store');
+        Route::get('/{id}', [DocumentRequestController::class, 'show'])->name('show');
+        Route::post('/{id}/approve', [DocumentRequestController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [DocumentRequestController::class, 'reject'])->name('reject');
+    });
 
 });
 
-});
-
-
-//test routes
+// -------- TEST ROUTE --------
 Route::get('/test', function () {
     return response()->json(['status' => 'ok']);
 })->name('test');
-

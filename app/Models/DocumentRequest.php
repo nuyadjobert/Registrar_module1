@@ -8,11 +8,12 @@ class DocumentRequest extends Model
 {
     protected $fillable = [
         'student_id',
-        'type',
-        'payment_status',
-        'status',
+        'type',          // e.g., "COR", "TOR"
+        'payment_status',// unpaid, paid
+        'status',        // pending, approved, completed
     ];
 
+    // Belongs to a Student
     public function student()
     {
         return $this->belongsTo(Student::class);

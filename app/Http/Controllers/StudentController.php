@@ -1,119 +1,41 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Services;
 
-use App\Models\Student;
-use App\Models\Enrollment;
-use App\Models\DocumentRequest;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
-class StudentController extends Controller
+class CashierService
 {
-    // GET /api/students
-    public function index()
+    /**
+     * Check if a student has unpaid enrollments/fines.
+     *
+     * @param int $studentId
+     * @return bool  true = has unpaid, false = all paid
+     * @throws \Exception if the Cashier API is unreachable
+     */
+    public function hasUnpaidFees(int $studentId): bool
     {
-        $students = Student::all();
-
-        return response()->json([
-            'message' => 'Students retrieved successfully',
-            'data'    => $students
-        ]);
-    }
-
-    // GET /api/students/{id}
-    public function show($id)
-    {
-        $student = Student::findOrFail($id);
-
-        return response()->json([
-            'message' => 'Student retrieved successfully',
-            'data'    => $student
-        ]);
-    }
-
-    // GET /api/students/{id}/cor
-    public function cor($id)
-    {
-        $student = Student::findOrFail($id);
-
-        // Check if there's a released COR request
-        $docRequest = DocumentRequest::where('student_id', $id)
-                                     ->where('type', 'cor')
-                                     ->where('status', 'released')
-                                     ->first();
-
-        if (!$docRequest) {
-            return response()->json([
-                'message' => 'COR is not yet available. Please ensure payment has been made and the document has been released.'
-            ], 403);
+        if (!env('CASHIER_ENABLED', false)) {
+            return false; // Let caller handle local DB check
         }
 
-        $student->load(['enrollments' => function($query) {
-            $query->where('status', 'approved')
-                  ->with(['section.subject']);
-        }]);
+        try {
+            $cashierApiUrl = rtrim(env('CASHIER_API_URL'), '/') . "/api/payments/check-unpaid/{$studentId}";
 
-        $enrollments = $student->enrollments->map(function($enrollment) {
-            return [
-                'section' => $enrollment->section->section_name ?? null,
-                'subject' => $enrollment->section->subject->subject_name ?? null,
-                'units'   => $enrollment->section->subject->units ?? null,
-                'status'  => $enrollment->status,
-            ];
-        });
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . env('CASHIER_API_KEY'),
+                'Accept' => 'application/json',
+            ])->get($cashierApiUrl);
 
-        return response()->json([
-            'message' => 'Certificate of Registration retrieved successfully',
-            'data'    => [
-                'student_number' => $student->student_number,
-                'name'           => $student->name,
-                'course'         => $student->course,
-                'enrollments'    => $enrollments,
-                'total_units'    => $enrollments->sum('units'),
-            ]
-        ]);
-    }
+            if ($response->failed()) {
+                throw new \Exception('Unable to verify payment status with Cashier API.');
+            }
 
-    // GET /api/students/{id}/transcript
-    public function transcript($id)
-    {
-        $student = Student::findOrFail($id);
+            $data = $response->json();
+            return !empty($data['has_unpaid_fines']) && $data['has_unpaid_fines'] === true;
 
-        // Check if there's a released TOR request
-        $docRequest = DocumentRequest::where('student_id', $id)
-                                     ->where('type', 'tor')
-                                     ->where('status', 'released')
-                                     ->first();
-
-        if (!$docRequest) {
-            return response()->json([
-                'message' => 'TOR is not yet available. Please ensure payment has been made and the document has been released.'
-            ], 403);
+        } catch (\Exception $e) {
+            throw new \Exception('Cashier API error: ' . $e->getMessage());
         }
-
-        $student->load(['enrollments' => function($query) {
-            $query->where('status', 'approved')
-                  ->with(['section.subject']);
-        }]);
-
-        $records = $student->enrollments->map(function($enrollment) {
-            return [
-                'section' => $enrollment->section->section_name ?? null,
-                'subject' => $enrollment->section->subject->subject_name ?? null,
-                'units'   => $enrollment->section->subject->units ?? null,
-                'status'  => $enrollment->status,
-            ];
-        });
-
-        return response()->json([
-            'message' => 'Transcript of Records retrieved successfully',
-            'data'    => [
-                'student_number' => $student->student_number,
-                'name'           => $student->name,
-                'course'         => $student->course,
-                'records'        => $records,
-                'total_units'    => $records->sum('units'),
-            ]
-        ]);
     }
 }

@@ -1,98 +1,130 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Enrollment;
-use App\Services\PaymentService;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Enrollment;
+use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 class EnrollmentController extends Controller
 {
-    public function __construct(protected PaymentService $paymentService) {}
-
-    // GET /api/enrollments
+    /**
+     * List all enrollments
+     */
     public function index()
     {
-        $enrollments = Enrollment::with(['student', 'section'])->get();
-
-        return response()->json([
-            'message' => 'Enrollments retrieved successfully',
-            'data'    => $enrollments
-        ]);
+        $enrollments = Enrollment::with('student.program', 'section.subject', 'section.instructor')->get();
+        return response()->json($enrollments);
     }
 
-    // GET /api/enrollments/{id}
-    public function show($id)
+    /**
+     * Enroll a student into a section
+     */
+    public function store(Request $request)
     {
-        $enrollment = Enrollment::with(['student', 'section'])->findOrFail($id);
-
-        return response()->json([
-            'message' => 'Enrollment retrieved successfully',
-            'data'    => $enrollment
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'section_id' => 'required|exists:sections,id',
         ]);
+
+        $enrollment = Enrollment::create([
+            'student_id' => $request->student_id,
+            'section_id' => $request->section_id,
+            'status' => 'pending',
+            'payment_status' => 'unpaid',
+        ]);
+
+        return response()->json($enrollment, 201);
     }
 
-    // POST /api/enrollments/{id}/approve
+    /**
+     * Approve enrollment with cashier payment check
+     */
     public function approve($id)
     {
         $enrollment = Enrollment::findOrFail($id);
 
-        if ($enrollment->status === 'approved') {
+        // Toggle feature flag to enable cashier API check
+        if (!env('CASHIER_ENABLED', false)) {
+            // If cashier is disabled, approve directly (for dev/testing)
+            $enrollment->update([
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+            ]);
+
             return response()->json([
-                'message' => 'Enrollment is already approved'
-            ], 422);
+                'message' => 'Enrollment approved (payment check skipped)',
+                'enrollment' => $enrollment
+            ]);
         }
 
-        // Payment check — powered by PaymentService stub for now
-        if (!$this->paymentService->hasPaid($enrollment)) {
+        // Call Cashier API to check for unpaid fines/payments
+        try {
+            $cashierApiUrl = env('CASHIER_API_URL') . "/api/payments/check-unpaid/{$enrollment->student_id}";
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . env('CASHIER_API_KEY'),
+                'Accept' => 'application/json',
+            ])->get($cashierApiUrl);
+
+            if ($response->failed()) {
+                return response()->json([
+                    'message' => 'Unable to verify payment status with cashier. Try again later.'
+                ], 503);
+            }
+
+            $data = $response->json();
+
+            // Assume cashier API returns JSON like: { "has_unpaid_fines": true/false }
+            if (!empty($data['has_unpaid_fines']) && $data['has_unpaid_fines'] === true) {
+                return response()->json([
+                    'message' => 'Cannot approve enrollment. Student has unpaid fines or fees.'
+                ], 403);
+            }
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Cannot approve enrollment. Student has not yet paid.'
-            ], 422);
+                'message' => 'Payment verification service currently unavailable.',
+                'error' => $e->getMessage(),
+            ], 503);
         }
 
-        $enrollment->update(['status' => 'approved']);
+        // All checks passed, approve enrollment
+        $enrollment->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+        ]);
 
         return response()->json([
             'message' => 'Enrollment approved successfully',
-            'data'    => $enrollment->load(['student', 'section'])
+            'enrollment' => $enrollment
         ]);
     }
 
-    // POST /api/enrollments/{id}/reject
-    public function reject($id)
+    /**
+     * Reject enrollment
+     */
+    public function reject($id, Request $request)
     {
         $enrollment = Enrollment::findOrFail($id);
-
-        if ($enrollment->status === 'rejected') {
-            return response()->json([
-                'message' => 'Enrollment is already rejected'
-            ], 422);
-        }
-
-        $enrollment->update(['status' => 'rejected']);
-
-        return response()->json([
-            'message' => 'Enrollment rejected successfully',
-            'data'    => $enrollment->load(['student', 'section'])
+        $enrollment->update([
+            'status' => 'rejected',
+            'approved_by' => auth()->id() ?? null,
+            'approved_at' => Carbon::now(),
         ]);
+
+        return response()->json(['message' => 'Enrollment rejected successfully', 'enrollment' => $enrollment]);
     }
 
-    // POST /api/enrollments/{id}/mark-paid  ← cashier team calls this
-    public function markAsPaid($id)
+    /**
+     * Show a single enrollment
+     */
+    public function show($id)
     {
-        $enrollment = Enrollment::findOrFail($id);
-
-        if ($enrollment->payment_status === 'paid') {
-            return response()->json([
-                'message' => 'Enrollment is already marked as paid'
-            ], 422);
-        }
-
-        $enrollment->update(['payment_status' => 'paid']);
-
-        return response()->json([
-            'message' => 'Payment status updated successfully',
-            'data'    => $enrollment->load(['student', 'section'])
-        ]);
+        $enrollment = Enrollment::with('student.program', 'section.subject', 'section.instructor')->findOrFail($id);
+        return response()->json($enrollment);
     }
 }

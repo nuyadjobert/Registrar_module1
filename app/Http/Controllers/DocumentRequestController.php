@@ -1,114 +1,66 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\DocumentRequest;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\DocumentRequest;
+use Illuminate\Validation\Rule;
 
 class DocumentRequestController extends Controller
 {
-    // GET /api/document-requests
+    /**
+     * List all document requests
+     */
     public function index()
     {
         $requests = DocumentRequest::with('student')->get();
-
-        return response()->json([
-            'message' => 'Document requests retrieved successfully',
-            'data'    => $requests
-        ]);
+        return response()->json($requests);
     }
 
-    // POST /api/document-requests
+    /**
+     * Store a new document request (COR / TOR)
+     */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'student_id' => 'required|exists:students,id',
-            'type'       => 'required|in:cor,tor',
+            'type' => ['required', Rule::in(['COR','TOR'])],
+            'payment_status' => ['nullable', Rule::in(['paid','unpaid'])],
+            'status' => ['nullable', Rule::in(['pending','approved','rejected'])],
         ]);
 
-        $existing = DocumentRequest::where('student_id', $validated['student_id'])
-                                   ->where('type', $validated['type'])
-                                   ->where('status', 'pending')
-                                   ->first();
+        $document = DocumentRequest::create($request->all());
 
-        if ($existing) {
-            return response()->json([
-                'message' => 'Student already has a pending ' . strtoupper($validated['type']) . ' request'
-            ], 422);
-        }
-
-        $docRequest = DocumentRequest::create([
-            'student_id' => $validated['student_id'],
-            'type'       => $validated['type'],
-            'status'     => 'pending',
-        ]);
-
-        return response()->json([
-            'message' => strtoupper($validated['type']) . ' request submitted successfully',
-            'data'    => $docRequest->load('student')
-        ], 201);
+        return response()->json($document, 201);
     }
 
-    // POST /api/document-requests/{id}/release
-    public function release($id)
+    /**
+     * Approve a request
+     */
+    public function approve($id)
     {
-        $docRequest = DocumentRequest::findOrFail($id);
-
-        if ($docRequest->status === 'released') {
-            return response()->json([
-                'message' => 'Document is already released'
-            ], 422);
-        }
-
-        if ($docRequest->payment_status !== 'paid') {
-            return response()->json([
-                'message' => 'Cannot release document. Student has not yet paid.'
-            ], 422);
-        }
-
-        $docRequest->update(['status' => 'released']);
-
-        return response()->json([
-            'message' => strtoupper($docRequest->type) . ' released successfully',
-            'data'    => $docRequest->load('student')
-        ]);
+        $document = DocumentRequest::findOrFail($id);
+        $document->update(['status' => 'approved']);
+        return response()->json(['message' => 'Document request approved', 'document' => $document]);
     }
 
-    // POST /api/document-requests/{id}/unrelease
-    public function unrelease($id)
+    /**
+     * Reject a request
+     */
+    public function reject($id)
     {
-        $docRequest = DocumentRequest::findOrFail($id);
-
-        if ($docRequest->status !== 'released') {
-            return response()->json([
-                'message' => 'Document is not yet released'
-            ], 422);
-        }
-
-        $docRequest->update(['status' => 'unreleased']);
-
-        return response()->json([
-            'message' => strtoupper($docRequest->type) . ' unreleased successfully',
-            'data'    => $docRequest->load('student')
-        ]);
+        $document = DocumentRequest::findOrFail($id);
+        $document->update(['status' => 'rejected']);
+        return response()->json(['message' => 'Document request rejected', 'document' => $document]);
     }
 
-    // POST /api/cashier/document-requests/{id}/mark-paid  ← cashier calls this
-    public function markAsPaid($id)
+    /**
+     * Show a single document request
+     */
+    public function show($id)
     {
-        $docRequest = DocumentRequest::findOrFail($id);
-
-        if ($docRequest->payment_status === 'paid') {
-            return response()->json([
-                'message' => 'Document request is already marked as paid'
-            ], 422);
-        }
-
-        $docRequest->update(['payment_status' => 'paid']);
-
-        return response()->json([
-            'message' => 'Payment status updated successfully',
-            'data'    => $docRequest->load('student')
-        ]);
+        $document = DocumentRequest::with('student')->findOrFail($id);
+        return response()->json($document);
     }
 }
