@@ -10,6 +10,8 @@ use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\DocumentRequestController;
 use App\Http\Controllers\GradeController;
+use App\Http\Controllers\InstructorController;
+use App\Http\Controllers\TermController;
 
 // ==============================
 // AUTH ROUTES
@@ -29,6 +31,8 @@ Route::prefix('auth')->name('auth.')->group(function () {
 // ==============================
 // PROTECTED ROUTES (Registrar)
 // ==============================
+
+Route::get('terms', [TermController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // -------- PROGRAMS --------
@@ -100,6 +104,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{id}/approve', [DocumentRequestController::class, 'approve'])->name('approve');
         Route::post('/{id}/reject', [DocumentRequestController::class, 'reject'])->name('reject');
     });
+
+    // -------- INSTRUCTORS --------
+Route::prefix('instructors')->name('instructors.')->group(function () {
+    Route::get('/', [InstructorController::class, 'index'])->name('index');
+    Route::post('/', [InstructorController::class, 'store'])->name('store');
+    Route::get('/{id}', [InstructorController::class, 'show'])->name('show');
+    Route::put('/{id}', [InstructorController::class, 'update'])->name('update');
+    Route::delete('/{id}', [InstructorController::class, 'destroy'])->name('destroy');
+});
+
+// -------- TERMS --------
+Route::prefix('terms')->name('terms.')->group(function () {
+    // Route::get('/', [TermController::class, 'index'])->name('index');
+    Route::post('/', [TermController::class, 'store'])->name('store');
+    Route::get('/{id}', [TermController::class, 'show'])->name('show');
+    Route::put('/{id}', [TermController::class, 'update'])->name('update');
+    Route::delete('/{id}', [TermController::class, 'destroy'])->name('destroy');
+});
 
 });
 

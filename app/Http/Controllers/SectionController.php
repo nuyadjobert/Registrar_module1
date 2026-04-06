@@ -16,22 +16,24 @@ class SectionController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'section_name' => 'required|string',
-            'subject_id' => 'required|exists:subjects,id',
-            'instructor_id' => 'required|exists:instructors,id',
-            'term_id' => 'required|exists:terms,id',
-            'capacity' => 'nullable|integer|min:1',
-            'schedule' => 'nullable|string',
-            'room' => 'nullable|string',
-            'status' => ['nullable', Rule::in(['open','closed'])],
-        ]);
+{
+    // 1. Validate exactly what you expect
+    $validated = $request->validate([
+        'section_name'          => 'required|string', // Ensure frontend sends "name"
+        'subject_id'    => 'required|exists:subjects,id',
+        'instructor_id' => 'required|exists:instructors,id',
+        'term_id'       => 'required|exists:terms,id',
+        'capacity'      => 'nullable|integer|min:1',
+        'schedule'      => 'nullable|string',
+        'room'          => 'nullable|string',
+        'status'        => ['nullable', Rule::in(['open', 'closed'])],
+    ]);
 
-        $section = Section::create($request->all());
+    // 2. Use $validated instead of $request->all()
+    $section = Section::create($validated);
 
-        return response()->json($section, 201);
-    }
+    return response()->json($section, 201);
+}
 
     public function show($id)
     {
