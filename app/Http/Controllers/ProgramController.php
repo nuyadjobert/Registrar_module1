@@ -12,11 +12,17 @@ class ProgramController extends Controller
     /**
      * List all programs
      */
-    public function index()
-    {
-        $programs = Program::all();
-        return response()->json($programs);
+   public function index(Request $request)
+{
+    $query = Program::query();
+
+    if ($request->has('status')) {
+        $query->where('status', $request->status);
     }
+
+    $programs = $query->get();
+    return response()->json($programs);
+}
 
     /**
      * Store a new program

@@ -9,10 +9,17 @@ use Illuminate\Validation\Rule;
 
 class SubjectController extends Controller
 {
-    public function index()
-    {
-        return response()->json(Subject::all());
+    public function index(Request $request)
+{
+    $query = Subject::query();
+
+    if ($request->has('status')) {
+        $query->where('status', $request->status);
     }
+
+    $subjects = $query->get();
+    return response()->json($subjects);
+}
 
     public function store(Request $request)
     {
