@@ -85,7 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [StudentController::class, 'index'])->name('index');
         Route::get('/{id}', [StudentController::class, 'show'])->name('show');
         Route::get('/{id}/cor', [StudentController::class, 'cor'])->name('cor');
-        Route::get('/{id}/tor', [StudentController::class, 'tor'])->name('tor');
+        Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
     });
 
     // -------- GRADES --------

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Student;
 use Illuminate\Support\Facades\Http;
+use App\Models\Grade;
 
 class StudentController extends Controller
 {
