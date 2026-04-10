@@ -81,20 +81,21 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // -------- STUDENTS --------
-    Route::prefix('students')->name('students.')->group(function () {
-        Route::get('/', [StudentController::class, 'index'])->name('index');
-        Route::get('/{id}', [StudentController::class, 'show'])->name('show');
-        Route::get('/{id}/cor', [StudentController::class, 'cor'])->name('cor');
-        Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
-    });
 
-    // -------- GRADES --------
-    Route::prefix('grades')->name('grades.')->group(function () {
-        Route::get('/', [GradeController::class, 'index'])->name('index');
-        Route::post('/', [GradeController::class, 'store'])->name('store');
-        Route::get('/{id}', [GradeController::class, 'show'])->name('show');
-        Route::put('/{id}', [GradeController::class, 'update'])->name('update');
-    });
+Route::prefix('students')->name('students.')->group(function () {
+    Route::get('/',                [StudentController::class, 'index'])->name('index');
+    Route::get('/{id}',            [StudentController::class, 'show'])->name('show');
+    Route::get('/{id}/cor',        [StudentController::class, 'cor'])->name('cor');
+    Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
+    Route::get('/{id}/grades',     [GradeController::class, 'byStudent'])->name('grades');
+});
+
+Route::prefix('grades')->name('grades.')->group(function () {
+    Route::get('/',       [GradeController::class, 'index'])->name('index');
+    Route::post('/',      [GradeController::class, 'store'])->name('store');
+    Route::get('/{id}',   [GradeController::class, 'show'])->name('show');
+    Route::put('/{id}',   [GradeController::class, 'update'])->name('update');
+});
 
     // -------- DOCUMENT REQUESTS --------
     Route::prefix('document-requests')->name('document-requests.')->group(function () {

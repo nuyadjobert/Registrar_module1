@@ -71,4 +71,28 @@ class GradeController extends Controller
         $grade = Grade::with('student', 'section.subject')->findOrFail($id);
         return response()->json($grade);
     }
+
+    public function byStudent($id)
+{
+    $enrollments = Enrollment::with('section.subject')
+        ->where('student_id', $id)
+        ->get();
+
+    $grades = Grade::where('student_id', $id)->get()->keyBy('section_id');
+
+    $result = $enrollments->map(function ($enrollment) use ($grades) {
+        $section = $enrollment->section;
+        $grade = $grades[$section->id] ?? null;
+
+        return [
+            'section_id' => $section->id,
+            'section_name' => $section->section_name,
+            'subject' => $section->subject->subject_name ?? '',
+            'grade' => $grade->grade ?? '',
+            'remarks' => $grade->remarks ?? ''
+        ];
+    });
+
+    return response()->json($result);
+}
 }
