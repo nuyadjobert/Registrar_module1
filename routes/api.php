@@ -95,6 +95,7 @@ Route::prefix('grades')->name('grades.')->group(function () {
     Route::post('/',      [GradeController::class, 'store'])->name('store');
     Route::get('/{id}',   [GradeController::class, 'show'])->name('show');
     Route::put('/{id}',   [GradeController::class, 'update'])->name('update');
+    Route::get('/sections/{id}/students', [GradeController::class, 'studentsBySection']);
 });
 
     // -------- DOCUMENT REQUESTS --------

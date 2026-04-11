@@ -95,4 +95,13 @@ class GradeController extends Controller
 
     return response()->json($result);
 }
+
+public function studentsBySection($sectionId)
+{
+    $students = \App\Models\Student::whereHas('enrollments', function ($q) use ($sectionId) {
+        $q->where('section_id', $sectionId);
+    })->get();
+
+    return response()->json($students);
+}
 }
