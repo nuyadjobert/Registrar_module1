@@ -54,6 +54,8 @@ class SubjectController extends Controller
             ],
             'subject_name' => 'required|string',
             'units' => 'required|integer|min:0',
+                'program_id' => 'required|exists:programs,id', // ✅ ADD THIS
+
             'type' => 'nullable|string',
             'status' => ['nullable', Rule::in(['active','inactive'])],
         ]);

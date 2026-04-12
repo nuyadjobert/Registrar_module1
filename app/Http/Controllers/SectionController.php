@@ -11,7 +11,10 @@ class SectionController extends Controller
 {
     public function index()
     {
-        $sections = Section::with('subject', 'instructor')->get();
+$sections = Section::with([
+    'subject.programs', // ✅ IMPORTANT
+    'instructor'
+])->get();
         return response()->json($sections);
     }
 
