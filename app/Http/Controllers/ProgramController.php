@@ -29,21 +29,19 @@ class ProgramController extends Controller
      */
     public function store(Request $request)
 {
-    $request->validate([
-        'code' => 'required|string|unique:programs,code',
-        'name' => 'required|string',
-        'department' => 'nullable|string',
-        'status' => ['nullable', Rule::in(['active','inactive'])],
-    ]);
+    try {
+        $program = Program::create($request->all());
 
-    $program = Program::create($request->all());
-
-    return response()->json([
-        'created' => $program,
-        'db_name' => \DB::connection()->getDatabaseName(),
-        'host' => \DB::connection()->getConfig('host'),
-        'count' => \App\Models\Program::count()
-    ], 201);
+        return response()->json([
+            'created' => $program,
+            'db' => DB::connection()->getDatabaseName(),
+            'count' => Program::count()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ]);
+    }
 }
     /**
      * Show a single program
