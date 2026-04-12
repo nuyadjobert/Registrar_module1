@@ -1,11 +1,14 @@
 #!/bin/sh
 
-# Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "Running RoleSeeder..."
-# Target only the RoleSeeder class
+echo "Clearing cache..."
+php artisan config:clear
+php artisan cache:clear
+
+echo "Running migrations..."
 php artisan migrate --force
-echo "Starting PHP-FPM..."
-# exec ensures php-fpm becomes the main process (important for Docker)
-exec php-fpm
+
+
+echo "Starting Laravel server..."
+exec php artisan serve --host=0.0.0.0 --port=${PORT}

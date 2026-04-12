@@ -1,60 +1,56 @@
-# --- Stage 1: Node.js (Build Assets) ---
+# --- Stage 1: Build Frontend Assets ---
 FROM node:20-alpine AS assets
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
 RUN npm run build
 
-# --- Stage 2: PHP & Application ---
-FROM php:8.2-fpm-alpine
 
-# Install System Dependencies
+# --- Stage 2: PHP + Laravel ---
+FROM php:8.2-cli-alpine
+
+# Install system dependencies
 RUN apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
-    zip \
-    unzip \
-    git \
-    curl \
-    oniguruma-dev \
-    postgresql-dev \
-    $PHPIZE_DEPS
+    zip unzip git curl oniguruma-dev postgresql-dev
 
-# Install PHP Extensions required by Laravel 12
+# Install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring zip exif pcntl gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set Working Directory
+# Set working directory
 WORKDIR /var/www
 
-# Copy Application code
+# Copy project files
 COPY . .
 
-# Copy built assets from Stage 1 (Vite/Build files)
+# Copy built frontend assets
 COPY --from=assets /app/public/build ./public/build
 
-# Install PHP Dependencies
+# Install Laravel dependencies
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
-# Set Permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-# 1. Copy the entrypoint script into the container
-# Expose port
+# Fix permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
 
+# Copy entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-
-# 2. Grant execute permissions to the script
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 3. Set the Entrypoint (This runs your seeder before starting the server)
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-EXPOSE 9000
+# Railway uses dynamic port
+ENV PORT=8080
+EXPOSE 8080
 
-CMD ["php-fpm"]
+# ✅ IMPORTANT: Use Laravel server (NOT php-fpm)
+CMD php artisan serve --host=0.0.0.0 --port=8080
