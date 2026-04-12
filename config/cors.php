@@ -3,10 +3,7 @@
 return [
     'paths' => ['api/*'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => [
-        'http://localhost:4200',
-        'https://your-angular-app.com',
-    ],
+    'allowed_origins' => ['*'],  // ✅ Allow ALL for now
     'allowed_headers' => ['*'],
-    'supports_credentials' => true,  // ✅ Changed to true
+    'supports_credentials' => true,
 ];
