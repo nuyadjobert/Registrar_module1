@@ -9,7 +9,7 @@ services:
       - "443:443"
     volumes:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
-      - ./public:/var/www
+      - ./public:/var/www/public
       - ./docker/ssl:/etc/nginx/ssl:ro
     networks:
       - library-network
