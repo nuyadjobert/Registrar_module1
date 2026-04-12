@@ -10,35 +10,53 @@ use Illuminate\Validation\Rule;
 class SubjectController extends Controller
 {
     public function index(Request $request)
-{
-    $query = Subject::query();
+    {
+        $query = Subject::with('programs');
 
-    if ($request->has('status')) {
-        $query->where('status', $request->status);
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $subjects = $query->get();
+        return response()->json($subjects);
     }
-
-    $subjects = $query->get();
-    return response()->json($subjects);
-}
 
     public function store(Request $request)
     {
         $request->validate([
             'subject_code' => 'required|string|unique:subjects,subject_code',
             'subject_name' => 'required|string',
-            'units' => 'required|integer|min:0',
-            'type' => 'nullable|string',
-            'status' => ['nullable', Rule::in(['active','inactive'])],
+            'units'        => 'required|integer|min:0',
+            'type'         => 'nullable|string',
+            'status'       => ['nullable', Rule::in(['active', 'inactive'])],
+            'program_id'   => 'required|exists:programs,id',
+            'year_level'   => 'nullable|integer',
+            'semester'     => 'nullable|string',
+            'school_year'  => 'nullable|string',
         ]);
 
-        $subject = Subject::create($request->all());
+        $subject = Subject::create([
+            'subject_code' => $request->subject_code,
+            'subject_name' => $request->subject_name,
+            'units'        => $request->units,
+            'type'         => $request->type,
+            'status'       => $request->status ?? 'active',
+        ]);
 
-        return response()->json($subject, 201);
+        // Attach to program via curricula pivot table
+        $subject->programs()->attach($request->program_id, [
+            'year_level'  => $request->year_level,
+            'semester'    => $request->semester,
+            'school_year' => $request->school_year ?? date('Y'),
+            'status'      => 'active',
+        ]);
+
+        return response()->json($subject->load('programs'), 201);
     }
 
     public function show($id)
     {
-        $subject = Subject::with('sections')->findOrFail($id);
+        $subject = Subject::with('sections', 'programs')->findOrFail($id);
         return response()->json($subject);
     }
 
@@ -47,22 +65,36 @@ class SubjectController extends Controller
         $subject = Subject::findOrFail($id);
 
         $request->validate([
-            'subject_code' => [
-                'required',
-                'string',
-                Rule::unique('subjects')->ignore($subject->id),
-            ],
+            'subject_code' => ['required', 'string', Rule::unique('subjects')->ignore($subject->id)],
             'subject_name' => 'required|string',
-            'units' => 'required|integer|min:0',
-                'program_id' => 'required|exists:programs,id', // ✅ ADD THIS
-
-            'type' => 'nullable|string',
-            'status' => ['nullable', Rule::in(['active','inactive'])],
+            'units'        => 'required|integer|min:0',
+            'type'         => 'nullable|string',
+            'status'       => ['nullable', Rule::in(['active', 'inactive'])],
+            'program_id'   => 'nullable|exists:programs,id',
+            'year_level'   => 'nullable|integer',
+            'semester'     => 'nullable|string',
+            'school_year'  => 'nullable|string',
         ]);
 
-        $subject->update($request->all());
+        $subject->update([
+            'subject_code' => $request->subject_code,
+            'subject_name' => $request->subject_name,
+            'units'        => $request->units,
+            'type'         => $request->type,
+            'status'       => $request->status,
+        ]);
 
-        return response()->json($subject);
+        // Update program association if provided
+        if ($request->has('program_id')) {
+            $subject->programs()->sync([$request->program_id => [
+                'year_level'  => $request->year_level,
+                'semester'    => $request->semester,
+                'school_year' => $request->school_year ?? date('Y'),
+                'status'      => 'active',
+            ]]);
+        }
+
+        return response()->json($subject->load('programs'));
     }
 
     public function destroy($id)
