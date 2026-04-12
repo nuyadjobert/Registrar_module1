@@ -8,5 +8,5 @@ return [
         'https://your-angular-app.com',
     ],
     'allowed_headers' => ['*'],
-    'supports_credentials' => false,
+    'supports_credentials' => true,  // ✅ Changed to true
 ];
