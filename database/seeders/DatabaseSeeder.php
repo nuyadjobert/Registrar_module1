@@ -7,6 +7,7 @@ use App\Models\Subject;
 use App\Models\Student;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,13 +15,16 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // User - won't duplicate
+        // User
         User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            ['name'  => 'Test User']
+            ['email' => 'admin@admin.com'],
+            [
+                'name'     => 'Admin',
+                'password' => Hash::make('password123'),
+            ]
         );
 
-        // Subjects - won't duplicate
+        // Subjects
         $subjects = [
             ['subject_code' => 'CS101', 'subject_name' => 'Introduction to Computing',     'units' => 3],
             ['subject_code' => 'CS102', 'subject_name' => 'Computer Programming 1',         'units' => 3],
@@ -39,12 +43,12 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // Students - won't duplicate
+        // Students
         Student::firstOrCreate(
             ['student_number' => '2024-0001'],
             [
                 'name'   => 'Juan Dela Cruz',
-                'course' => 'BSIT'
+                'course' => 'BSIT',
             ]
         );
     }
