@@ -46,6 +46,15 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 # 1. Copy the entrypoint script into the container
 # Expose port
+
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+# 2. Grant execute permissions to the script
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# 3. Set the Entrypoint (This runs your seeder before starting the server)
+ENTRYPOINT ["docker-entrypoint.sh"]
+
 EXPOSE 9000
 
 CMD ["php-fpm"]
