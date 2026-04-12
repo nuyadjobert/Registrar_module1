@@ -163,3 +163,12 @@ Route::prefix('terms')->group(function () {
 Route::get('/test', function () {
     return response()->json(['status' => 'ok']);
 });
+
+Route::get('/create-admin', function () {
+    $user = \App\Models\User::create([
+        'name'     => 'Admin',
+        'email'    => 'admin@admin.com',
+        'password' => \Illuminate\Support\Facades\Hash::make('password123'),
+    ]);
+    return response()->json($user);
+});
