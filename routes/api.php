@@ -13,121 +13,153 @@ use App\Http\Controllers\GradeController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\TermController;
 
-// ==============================
-// AUTH ROUTES
-// ==============================
-Route::prefix('auth')->name('auth.')->group(function () {
-
-    Route::post('/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
-
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-        Route::get('/user', [AuthController::class, 'user'])->name('user');
-    });
-
+/*
+|--------------------------------------------------------------------------
+| AUTH ROUTES (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
 });
 
-// ==============================
-// PROTECTED ROUTES (Registrar)
-// ==============================
-
-Route::get('terms', [TermController::class, 'index']);
-Route::middleware('auth:sanctum')->group(function () {
-
-    // -------- PROGRAMS --------
-    Route::prefix('programs')->name('programs.')->group(function () {
-        Route::get('/', [ProgramController::class, 'index'])->name('index');
-        Route::post('/', [ProgramController::class, 'store'])->name('store');
-        Route::get('/{id}', [ProgramController::class, 'show'])->name('show');
-        Route::put('/{id}', [ProgramController::class, 'update'])->name('update');
-        Route::delete('/{id}', [ProgramController::class, 'destroy'])->name('destroy');
-    });
-
-    // -------- SUBJECTS --------
-    Route::prefix('subjects')->name('subjects.')->group(function () {
-        Route::get('/', [SubjectController::class, 'index'])->name('index');
-        Route::post('/', [SubjectController::class, 'store'])->name('store');
-        Route::get('/{id}', [SubjectController::class, 'show'])->name('show');
-        Route::put('/{id}', [SubjectController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SubjectController::class, 'destroy'])->name('destroy');
-    });
-
-    // -------- CURRICULA --------
-    Route::prefix('curricula')->name('curricula.')->group(function () {
-        Route::get('/', [CurriculumController::class, 'index'])->name('index');
-        Route::post('/', [CurriculumController::class, 'store'])->name('store');
-        Route::get('/{id}', [CurriculumController::class, 'show'])->name('show');
-        Route::put('/{id}', [CurriculumController::class, 'update'])->name('update');
-        Route::delete('/{id}', [CurriculumController::class, 'destroy'])->name('destroy');
-    });
-
-    // -------- SECTIONS --------
-    Route::prefix('sections')->name('sections.')->group(function () {
-        Route::get('/', [SectionController::class, 'index'])->name('index');
-        Route::post('/', [SectionController::class, 'store'])->name('store');
-        Route::get('/{id}', [SectionController::class, 'show'])->name('show');
-        Route::put('/{id}', [SectionController::class, 'update'])->name('update');
-        Route::delete('/{id}', [SectionController::class, 'destroy'])->name('destroy');
-    });
-
-    // -------- ENROLLMENTS --------
-    Route::prefix('enrollments')->name('enrollments.')->group(function () {
-        Route::get('/', [EnrollmentController::class, 'index'])->name('index');
-        Route::get('/{id}', [EnrollmentController::class, 'show'])->name('show');
-        Route::post('/{id}/approve', [EnrollmentController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [EnrollmentController::class, 'reject'])->name('reject');
-        Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid'])->name('mark-paid');
-    });
-
-    // -------- STUDENTS --------
-
-Route::prefix('students')->name('students.')->group(function () {
-    Route::get('/',                [StudentController::class, 'index'])->name('index');
-    Route::get('/{id}',            [StudentController::class, 'show'])->name('show');
-    Route::get('/{id}/cor',        [StudentController::class, 'cor'])->name('cor');
-    Route::get('/{id}/transcript', [StudentController::class, 'transcript'])->name('transcript');
-    Route::get('/{id}/grades',     [GradeController::class, 'byStudent'])->name('grades');
+/*
+|--------------------------------------------------------------------------
+| PROGRAMS (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('programs')->group(function () {
+    Route::get('/', [ProgramController::class, 'index']);
+    Route::post('/', [ProgramController::class, 'store']);
+    Route::get('/{id}', [ProgramController::class, 'show']);
+    Route::put('/{id}', [ProgramController::class, 'update']);
+    Route::delete('/{id}', [ProgramController::class, 'destroy']);
 });
 
-Route::prefix('grades')->name('grades.')->group(function () {
-    Route::get('/',       [GradeController::class, 'index'])->name('index');
-    Route::post('/',      [GradeController::class, 'store'])->name('store');
-    Route::get('/{id}',   [GradeController::class, 'show'])->name('show');
-    Route::put('/{id}',   [GradeController::class, 'update'])->name('update');
+/*
+|--------------------------------------------------------------------------
+| SUBJECTS (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('subjects')->group(function () {
+    Route::get('/', [SubjectController::class, 'index']);
+    Route::post('/', [SubjectController::class, 'store']);
+    Route::get('/{id}', [SubjectController::class, 'show']);
+    Route::put('/{id}', [SubjectController::class, 'update']);
+    Route::delete('/{id}', [SubjectController::class, 'destroy']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| CURRICULA (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('curricula')->group(function () {
+    Route::get('/', [CurriculumController::class, 'index']);
+    Route::post('/', [CurriculumController::class, 'store']);
+    Route::get('/{id}', [CurriculumController::class, 'show']);
+    Route::put('/{id}', [CurriculumController::class, 'update']);
+    Route::delete('/{id}', [CurriculumController::class, 'destroy']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| SECTIONS (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('sections')->group(function () {
+    Route::get('/', [SectionController::class, 'index']);
+    Route::post('/', [SectionController::class, 'store']);
+    Route::get('/{id}', [SectionController::class, 'show']);
+    Route::put('/{id}', [SectionController::class, 'update']);
+    Route::delete('/{id}', [SectionController::class, 'destroy']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| ENROLLMENTS (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('enrollments')->group(function () {
+    Route::get('/', [EnrollmentController::class, 'index']);
+    Route::get('/{id}', [EnrollmentController::class, 'show']);
+    Route::post('/{id}/approve', [EnrollmentController::class, 'approve']);
+    Route::post('/{id}/reject', [EnrollmentController::class, 'reject']);
+    Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| STUDENTS (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('students')->group(function () {
+    Route::get('/', [StudentController::class, 'index']);
+    Route::get('/{id}', [StudentController::class, 'show']);
+    Route::get('/{id}/cor', [StudentController::class, 'cor']);
+    Route::get('/{id}/transcript', [StudentController::class, 'transcript']);
+    Route::get('/{id}/grades', [GradeController::class, 'byStudent']);
+});
+
+/*
+|--------------------------------------------------------------------------
+| GRADES (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('grades')->group(function () {
+    Route::get('/', [GradeController::class, 'index']);
+    Route::post('/', [GradeController::class, 'store']);
+    Route::get('/{id}', [GradeController::class, 'show']);
+    Route::put('/{id}', [GradeController::class, 'update']);
     Route::get('/sections/{id}/students', [GradeController::class, 'studentsBySection']);
 });
 
-    // -------- DOCUMENT REQUESTS --------
-    Route::prefix('document-requests')->name('document-requests.')->group(function () {
-        Route::get('/', [DocumentRequestController::class, 'index'])->name('index');
-        Route::post('/', [DocumentRequestController::class, 'store'])->name('store');
-        Route::get('/{id}', [DocumentRequestController::class, 'show'])->name('show');
-        Route::post('/{id}/approve', [DocumentRequestController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [DocumentRequestController::class, 'reject'])->name('reject');
-    });
-
-    // -------- INSTRUCTORS --------
-Route::prefix('instructors')->name('instructors.')->group(function () {
-    Route::get('/', [InstructorController::class, 'index'])->name('index');
-    Route::post('/', [InstructorController::class, 'store'])->name('store');
-    Route::get('/{id}', [InstructorController::class, 'show'])->name('show');
-    Route::put('/{id}', [InstructorController::class, 'update'])->name('update');
-    Route::delete('/{id}', [InstructorController::class, 'destroy'])->name('destroy');
+/*
+|--------------------------------------------------------------------------
+| DOCUMENT REQUESTS (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('document-requests')->group(function () {
+    Route::get('/', [DocumentRequestController::class, 'index']);
+    Route::post('/', [DocumentRequestController::class, 'store']);
+    Route::get('/{id}', [DocumentRequestController::class, 'show']);
+    Route::post('/{id}/approve', [DocumentRequestController::class, 'approve']);
+    Route::post('/{id}/reject', [DocumentRequestController::class, 'reject']);
 });
 
-// -------- TERMS --------
-Route::prefix('terms')->name('terms.')->group(function () {
-    // Route::get('/', [TermController::class, 'index'])->name('index');
-    Route::post('/', [TermController::class, 'store'])->name('store');
-    Route::get('/{id}', [TermController::class, 'show'])->name('show');
-    Route::put('/{id}', [TermController::class, 'update'])->name('update');
-    Route::delete('/{id}', [TermController::class, 'destroy'])->name('destroy');
+/*
+|--------------------------------------------------------------------------
+| INSTRUCTORS (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('instructors')->group(function () {
+    Route::get('/', [InstructorController::class, 'index']);
+    Route::post('/', [InstructorController::class, 'store']);
+    Route::get('/{id}', [InstructorController::class, 'show']);
+    Route::put('/{id}', [InstructorController::class, 'update']);
+    Route::delete('/{id}', [InstructorController::class, 'destroy']);
 });
 
+/*
+|--------------------------------------------------------------------------
+| TERMS (PUBLIC CRUD)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('terms')->group(function () {
+    Route::get('/', [TermController::class, 'index']);
+    Route::post('/', [TermController::class, 'store']);
+    Route::get('/{id}', [TermController::class, 'show']);
+    Route::put('/{id}', [TermController::class, 'update']);
+    Route::delete('/{id}', [TermController::class, 'destroy']);
 });
 
-// -------- TEST ROUTE --------
+/*
+|--------------------------------------------------------------------------
+| TEST ROUTE
+|--------------------------------------------------------------------------
+*/
 Route::get('/test', function () {
     return response()->json(['status' => 'ok']);
-})->name('test');
+});
