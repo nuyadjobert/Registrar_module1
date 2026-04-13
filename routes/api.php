@@ -29,75 +29,101 @@ Route::prefix('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| PROGRAMS (PUBLIC CRUD)
+| PROGRAMS
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->prefix('programs')->group(function () {
+Route::prefix('programs')->group(function () {
+    // Public GET routes
     Route::get('/', [ProgramController::class, 'index']);
-    Route::post('/', [ProgramController::class, 'store']);
     Route::get('/{id}', [ProgramController::class, 'show']);
-    Route::put('/{id}', [ProgramController::class, 'update']);
-    Route::delete('/{id}', [ProgramController::class, 'destroy']);
+    
+    // Protected POST/PUT/DELETE routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [ProgramController::class, 'store']);
+        Route::put('/{id}', [ProgramController::class, 'update']);
+        Route::delete('/{id}', [ProgramController::class, 'destroy']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| SUBJECTS (PUBLIC CRUD)
+| SUBJECTS
 |--------------------------------------------------------------------------
 */
 Route::prefix('subjects')->group(function () {
+    // Public GET routes
     Route::get('/', [SubjectController::class, 'index']);
-    Route::post('/', [SubjectController::class, 'store']);
     Route::get('/{id}', [SubjectController::class, 'show']);
-    Route::put('/{id}', [SubjectController::class, 'update']);
-    Route::delete('/{id}', [SubjectController::class, 'destroy']);
+    
+    // Protected POST/PUT/DELETE routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [SubjectController::class, 'store']);
+        Route::put('/{id}', [SubjectController::class, 'update']);
+        Route::delete('/{id}', [SubjectController::class, 'destroy']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| CURRICULA (PUBLIC CRUD)
+| CURRICULA
 |--------------------------------------------------------------------------
 */
 Route::prefix('curricula')->group(function () {
+    // Public GET routes
     Route::get('/', [CurriculumController::class, 'index']);
-    Route::post('/', [CurriculumController::class, 'store']);
     Route::get('/{id}', [CurriculumController::class, 'show']);
-    Route::put('/{id}', [CurriculumController::class, 'update']);
-    Route::delete('/{id}', [CurriculumController::class, 'destroy']);
+    
+    // Protected POST/PUT/DELETE routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [CurriculumController::class, 'store']);
+        Route::put('/{id}', [CurriculumController::class, 'update']);
+        Route::delete('/{id}', [CurriculumController::class, 'destroy']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| SECTIONS (PUBLIC CRUD)
+| SECTIONS
 |--------------------------------------------------------------------------
 */
 Route::prefix('sections')->group(function () {
+    // Public GET routes
     Route::get('/', [SectionController::class, 'index']);
-    Route::post('/', [SectionController::class, 'store']);
     Route::get('/{id}', [SectionController::class, 'show']);
-    Route::put('/{id}', [SectionController::class, 'update']);
-    Route::delete('/{id}', [SectionController::class, 'destroy']);
+    
+    // Protected POST/PUT/DELETE routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [SectionController::class, 'store']);
+        Route::put('/{id}', [SectionController::class, 'update']);
+        Route::delete('/{id}', [SectionController::class, 'destroy']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| ENROLLMENTS (PUBLIC CRUD)
+| ENROLLMENTS
 |--------------------------------------------------------------------------
 */
 Route::prefix('enrollments')->group(function () {
+    // Public GET routes
     Route::get('/', [EnrollmentController::class, 'index']);
     Route::get('/{id}', [EnrollmentController::class, 'show']);
-    Route::post('/{id}/approve', [EnrollmentController::class, 'approve']);
-    Route::post('/{id}/reject', [EnrollmentController::class, 'reject']);
-    Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid']);
+    
+    // Protected POST routes (approve, reject, mark as paid)
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/{id}/approve', [EnrollmentController::class, 'approve']);
+        Route::post('/{id}/reject', [EnrollmentController::class, 'reject']);
+        Route::post('/{id}/mark-paid', [EnrollmentController::class, 'markAsPaid']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| STUDENTS (PUBLIC)
+| STUDENTS
 |--------------------------------------------------------------------------
 */
 Route::prefix('students')->group(function () {
+    // All GET routes are public
     Route::get('/', [StudentController::class, 'index']);
     Route::get('/{id}', [StudentController::class, 'show']);
     Route::get('/{id}/cor', [StudentController::class, 'cor']);
@@ -107,54 +133,74 @@ Route::prefix('students')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| GRADES (PUBLIC)
+| GRADES
 |--------------------------------------------------------------------------
 */
 Route::prefix('grades')->group(function () {
+    // Public GET routes
     Route::get('/', [GradeController::class, 'index']);
-    Route::post('/', [GradeController::class, 'store']);
     Route::get('/{id}', [GradeController::class, 'show']);
-    Route::put('/{id}', [GradeController::class, 'update']);
     Route::get('/sections/{id}/students', [GradeController::class, 'studentsBySection']);
+    
+    // Protected POST/PUT routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [GradeController::class, 'store']);
+        Route::put('/{id}', [GradeController::class, 'update']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| DOCUMENT REQUESTS (PUBLIC)
+| DOCUMENT REQUESTS
 |--------------------------------------------------------------------------
 */
 Route::prefix('document-requests')->group(function () {
+    // Public GET routes
     Route::get('/', [DocumentRequestController::class, 'index']);
-    Route::post('/', [DocumentRequestController::class, 'store']);
     Route::get('/{id}', [DocumentRequestController::class, 'show']);
-    Route::post('/{id}/approve', [DocumentRequestController::class, 'approve']);
-    Route::post('/{id}/reject', [DocumentRequestController::class, 'reject']);
+    
+    // Protected POST routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [DocumentRequestController::class, 'store']);
+        Route::post('/{id}/approve', [DocumentRequestController::class, 'approve']);
+        Route::post('/{id}/reject', [DocumentRequestController::class, 'reject']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| INSTRUCTORS (PUBLIC CRUD)
+| INSTRUCTORS
 |--------------------------------------------------------------------------
 */
 Route::prefix('instructors')->group(function () {
+    // Public GET routes
     Route::get('/', [InstructorController::class, 'index']);
-    Route::post('/', [InstructorController::class, 'store']);
     Route::get('/{id}', [InstructorController::class, 'show']);
-    Route::put('/{id}', [InstructorController::class, 'update']);
-    Route::delete('/{id}', [InstructorController::class, 'destroy']);
+    
+    // Protected POST/PUT/DELETE routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [InstructorController::class, 'store']);
+        Route::put('/{id}', [InstructorController::class, 'update']);
+        Route::delete('/{id}', [InstructorController::class, 'destroy']);
+    });
 });
 
 /*
 |--------------------------------------------------------------------------
-| TERMS (PUBLIC CRUD)
+| TERMS
 |--------------------------------------------------------------------------
 */
 Route::prefix('terms')->group(function () {
+    // Public GET routes
     Route::get('/', [TermController::class, 'index']);
-    Route::post('/', [TermController::class, 'store']);
     Route::get('/{id}', [TermController::class, 'show']);
-    Route::put('/{id}', [TermController::class, 'update']);
-    Route::delete('/{id}', [TermController::class, 'destroy']);
+    
+    // Protected POST/PUT/DELETE routes
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [TermController::class, 'store']);
+        Route::put('/{id}', [TermController::class, 'update']);
+        Route::delete('/{id}', [TermController::class, 'destroy']);
+    });
 });
 
 /*
@@ -174,6 +220,3 @@ Route::get('/create-admin', function () {
     ]);
     return response()->json($user);
 });
-
-//hayst
-//help
