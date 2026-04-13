@@ -44,11 +44,15 @@ class ExternalStudentController extends Controller
                     'student_number' => $data['student_number']
                 ],
                 [
+                    'name' => $data['first_name'] . ' ' . $data['last_name'],
+
+                    // IMPORTANT: map course_id → program_id
+                    'program_id' => $data['course_id'],
+
                     'first_name'   => $data['first_name'],
                     'last_name'    => $data['last_name'],
                     'email'        => $data['email'],
                     'phone_number' => $data['phone_number'] ?? null,
-                    'course_id'    => $data['course_id'] ?? null,
                     'enrolled_at'  => $data['enrolled_at'] ?? null,
                 ]
             );
