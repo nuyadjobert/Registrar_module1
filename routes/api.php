@@ -21,7 +21,9 @@ use App\Http\Controllers\TermController;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/logout', [AuthController::class, 'logout']);
+    
+    Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+    
     Route::get('/user', [AuthController::class, 'user']);
 });
 
@@ -30,7 +32,7 @@ Route::prefix('auth')->group(function () {
 | PROGRAMS (PUBLIC CRUD)
 |--------------------------------------------------------------------------
 */
-Route::prefix('programs')->group(function () {
+Route::middleware('auth:sanctum')->prefix('programs')->group(function () {
     Route::get('/', [ProgramController::class, 'index']);
     Route::post('/', [ProgramController::class, 'store']);
     Route::get('/{id}', [ProgramController::class, 'show']);
