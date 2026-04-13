@@ -12,6 +12,7 @@ use App\Http\Controllers\DocumentRequestController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\InstructorController;
 use App\Http\Controllers\TermController;
+use App\Http\Controllers\ExternalStudentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -201,6 +202,19 @@ Route::prefix('terms')->group(function () {
         Route::put('/{id}', [TermController::class, 'update']);
         Route::delete('/{id}', [TermController::class, 'destroy']);
     });
+});
+
+/*
+|--------------------------------------------------------------------------
+| EXTERNAL SYNC (INTEGRATION ROUTES)
+|--------------------------------------------------------------------------
+*/
+
+
+Route::prefix('external')->group(function () {
+
+    Route::get('/students/sync', [ExternalStudentController::class, 'syncStudents']);
+
 });
 
 /*
