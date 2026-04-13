@@ -32,7 +32,10 @@ class SubjectController extends Controller
             'program_id'   => 'required|exists:programs,id',
             'year_level'   => 'nullable|integer',
             'semester'     => 'nullable|string',
-            'school_year'  => 'nullable|integer',
+            'school_year' => [
+                'nullable',
+                'regex:/^\d{4}-\d{4}$/',
+            ],
         ]);
 
         $subject = Subject::create([
@@ -73,7 +76,10 @@ class SubjectController extends Controller
             'program_id'   => 'nullable|exists:programs,id',
             'year_level'   => 'nullable|integer',
             'semester'     => 'nullable|string',
-            'school_year'  => 'nullable|string',
+            'school_year' => [
+                'nullable',
+                'regex:/^\d{4}-\d{4}$/',
+            ],
         ]);
 
         $subject->update([
