@@ -45,21 +45,22 @@ public function login(Request $request)
         'password' => 'required|string',
     ]);
 
-    // Call external API instead of local Auth::attempt()
-    $response = Http::post('https://admission-api-production.up.railway.app/api/auth/login', [
-        'email'    => $request->email,
-        'password' => $request->password,
-    ]);
+    $response = Http::asJson()
+        ->acceptJson()
+        ->timeout(10)
+        ->post('https://admission-api-production.up.railway.app/api/auth/login', [
+            'email'    => $request->email,
+            'password' => $request->password,
+        ]);
 
-    // If API rejects login
     if ($response->failed()) {
         return response()->json([
             'message' => 'Invalid credentials (API)',
+            'status'  => $response->status(),
             'error'   => $response->json()
         ], 401);
     }
 
-    // API success response
     $data = $response->json();
 
     return response()->json([
