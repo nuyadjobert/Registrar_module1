@@ -9,26 +9,6 @@ use Illuminate\Validation\Rule;
 
 class SubjectController extends Controller
 {
-    /**
-     * Reusable School Year Validation
-     */
-    private function schoolYearValidation()
-    {
-        return [
-            'nullable',
-            'regex:/^\d{4}-\d{4}$/',
-            function ($attribute, $value, $fail) {
-                if (!$value) return;
-
-                [$start, $end] = explode('-', $value);
-
-                if ((int)$end !== (int)$start + 1) {
-                    $fail('The school year must be a valid range like 2025-2026.');
-                }
-            },
-        ];
-    }
-
     public function index(Request $request)
     {
         $query = Subject::with('programs');
@@ -37,7 +17,8 @@ class SubjectController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->get());
+        $subjects = $query->get();
+        return response()->json($subjects);
     }
 
     public function store(Request $request)
@@ -51,11 +32,8 @@ class SubjectController extends Controller
             'program_id'   => 'required|exists:programs,id',
             'year_level'   => 'nullable|integer',
             'semester'     => 'nullable|string',
-            'school_year'  => $this->schoolYearValidation(),
+            'school_year'  => 'nullable|integer',
         ]);
-
-        $schoolYear = $request->school_year 
-            ?? date('Y') . '-' . (date('Y') + 1);
 
         $subject = Subject::create([
             'subject_code' => $request->subject_code,
@@ -69,7 +47,7 @@ class SubjectController extends Controller
         $subject->programs()->attach($request->program_id, [
             'year_level'  => $request->year_level,
             'semester'    => $request->semester,
-            'school_year' => $schoolYear,
+            'school_year' => $request->school_year ?? date('Y'),
             'status'      => 'active',
         ]);
 
@@ -95,11 +73,8 @@ class SubjectController extends Controller
             'program_id'   => 'nullable|exists:programs,id',
             'year_level'   => 'nullable|integer',
             'semester'     => 'nullable|string',
-            'school_year'  => $this->schoolYearValidation(),
+            'school_year'  => 'nullable|string',
         ]);
-
-        $schoolYear = $request->school_year 
-            ?? date('Y') . '-' . (date('Y') + 1);
 
         $subject->update([
             'subject_code' => $request->subject_code,
@@ -111,14 +86,12 @@ class SubjectController extends Controller
 
         // Update program association if provided
         if ($request->has('program_id')) {
-            $subject->programs()->sync([
-                $request->program_id => [
-                    'year_level'  => $request->year_level,
-                    'semester'    => $request->semester,
-                    'school_year' => $schoolYear,
-                    'status'      => 'active',
-                ]
-            ]);
+            $subject->programs()->sync([$request->program_id => [
+                'year_level'  => $request->year_level,
+                'semester'    => $request->semester,
+                'school_year' => $request->school_year ?? date('Y'),
+                'status'      => 'active',
+            ]]);
         }
 
         return response()->json($subject->load('programs'));
