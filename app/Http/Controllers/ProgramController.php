@@ -12,37 +12,58 @@ class ProgramController extends Controller
     /**
      * List all programs
      */
-   public function index(Request $request)
-{
-    $query = Program::query();
+    public function index(Request $request)
+    {
+        $query = Program::query();
 
-    if ($request->has('status')) {
-        $query->where('status', $request->status);
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $programs = $query->get();
+        return response()->json($programs);
     }
-
-    $programs = $query->get();
-    return response()->json($programs);
-}
 
     /**
      * Store a new program
      */
     public function store(Request $request)
-{
-    try {
-        $program = Program::create($request->all());
+    {
+        $validated = $request->validate([
+            'code'       => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('programs', 'code'),
+            ],
+            'name'       => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'status'     => ['nullable', Rule::in(['active', 'inactive'])],
+        ], [
+            'code.unique' => 'A program with this code already exists.',
+            'name.unique' => 'A program with this name already exists.', // we'll add composite below
+        ]);
+
+        // Additional composite unique check: name + department
+        $exists = Program::where('name', $validated['name'])
+                         ->where('department', $validated['department'])
+                         ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'A program with this name and department already exists.',
+                'errors'  => ['department' => 'A program with this name and department already exists.']
+            ], 422);
+        }
+
+        $program = Program::create($validated);
 
         return response()->json([
-            'created' => $program,
-            'db' => DB::connection()->getDatabaseName(),
-            'count' => Program::count()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'error' => $e->getMessage()
-        ]);
+            'message' => 'Program created successfully',
+            'program' => $program
+        ], 201);
     }
-}
+
     /**
      * Show a single program
      */
@@ -59,20 +80,37 @@ class ProgramController extends Controller
     {
         $program = Program::findOrFail($id);
 
-        $request->validate([
-            'code' => [
+        $validated = $request->validate([
+            'code'       => [
                 'required',
                 'string',
-                Rule::unique('programs')->ignore($program->id),
+                'max:10',
+                Rule::unique('programs', 'code')->ignore($program->id),
             ],
-            'name' => 'required|string',
-            'department' => 'nullable|string',
-            'status' => ['nullable', Rule::in(['active','inactive'])],
+            'name'       => 'required|string|max:255',
+            'department' => 'required|string|max:255',
+            'status'     => ['nullable', Rule::in(['active', 'inactive'])],
         ]);
 
-        $program->update($request->all());
+        // Composite unique check for name + department (ignore current record)
+        $exists = Program::where('name', $validated['name'])
+                         ->where('department', $validated['department'])
+                         ->where('id', '!=', $program->id)
+                         ->exists();
 
-        return response()->json($program);
+        if ($exists) {
+            return response()->json([
+                'message' => 'A program with this name and department already exists.',
+                'errors'  => ['department' => 'A program with this name and department already exists.']
+            ], 422);
+        }
+
+        $program->update($validated);
+
+        return response()->json([
+            'message' => 'Program updated successfully',
+            'program' => $program
+        ]);
     }
 
     /**
