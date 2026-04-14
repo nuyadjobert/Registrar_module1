@@ -213,25 +213,16 @@ Route::prefix('terms')->group(function () {
 
 
 
-Route::prefix('external')->name('external.')->group(function () {
 
-    // Sync Students
-    Route::get('/students/sync', [ExternalStudentController::class, 'syncStudents'])
-         ->name('students.sync');
 
-    // Student Documents
-    Route::prefix('students')->group(function () {
+Route::prefix('external')->group(function () {
 
-        Route::get('{studentNumber}/documents', [ExternalStudentController::class, 'getDocuments'])
-             ->name('students.documents');
+    Route::get('/students/sync', [ExternalStudentController::class, 'syncStudents']);
 
-        Route::get('{studentNumber}/documents/{type}', [ExternalStudentController::class, 'getDocumentByType'])
-             ->name('students.document.by-type');
+    // New: Get documents (proxy)
+    Route::get('/{studentNumber}/documents', [ExternalStudentController::class, 'getDocuments']);
 
-    });
-
-});
-/*
+});/*
 |--------------------------------------------------------------------------
 | TEST ROUTE
 |--------------------------------------------------------------------------
